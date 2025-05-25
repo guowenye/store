@@ -36,38 +36,84 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
+    
+    # 检查项目结构和gradlew位置
+    - name: 检查项目结构
+      run: |
+        ls -la
+        find . -name "gradlew" -type f
           
+    # 检查项目是否需要初始化Gradle Wrapper
+    - name: 初始化Gradle Wrapper（如果需要）
+      run: |
+        if [ ! -f "./gradlew" ] && [ ! -f "./smartshop/gradlew" ]; then
+          echo "未找到Gradle Wrapper，正在初始化..."
+          gradle wrapper
+        fi
+      
+    # 使用正确的gradlew路径
     - name: 授予执行权限
-      run: chmod +x gradlew
+      run: |
+        if [ -f "./gradlew" ]; then
+          chmod +x ./gradlew
+          echo "使用根目录的gradlew"
+        elif [ -f "./smartshop/gradlew" ]; then
+          chmod +x ./smartshop/gradlew
+          echo "使用smartshop目录的gradlew"
+        else
+          echo "错误：找不到gradlew文件"
+          exit 1
+        fi
       
     - name: 代码检查
-      run: ./gradlew lint
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew lint
+        else
+          cd smartshop && ../gradlew lint
+        fi
       
     - name: 上传代码检查报告
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: lint-report
-        path: smartshop/build/reports/lint-results-debug.html
+        path: |
+          */build/reports/lint-results-debug.html
+          smartshop/build/reports/lint-results-debug.html
         
     - name: 运行单元测试
-      run: ./gradlew test
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew test
+        else
+          cd smartshop && ../gradlew test
+        fi
       
     - name: 上传测试报告
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-report
-        path: smartshop/build/reports/tests/
+        path: |
+          */build/reports/tests/
+          smartshop/build/reports/tests/
         
     - name: 构建Debug APK
-      run: ./gradlew assembleDebug
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleDebug
+        else
+          cd smartshop && ../gradlew assembleDebug
+        fi
       
     - name: 上传Debug APK
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
-        path: smartshop/build/outputs/apk/debug/smartshop-debug.apk
+        path: |
+          */build/outputs/apk/debug/*.apk
+          smartshop/build/outputs/apk/debug/*.apk
         
   ui-test:
     name: 安卓UI测试
@@ -101,9 +147,26 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
+    
+    # 检查项目结构和gradlew位置
+    - name: 检查项目结构
+      run: |
+        ls -la
+        find . -name "gradlew" -type f
           
+    # 使用正确的gradlew路径
     - name: 授予执行权限
-      run: chmod +x gradlew
+      run: |
+        if [ -f "./gradlew" ]; then
+          chmod +x ./gradlew
+          echo "使用根目录的gradlew"
+        elif [ -f "./smartshop/gradlew" ]; then
+          chmod +x ./smartshop/gradlew
+          echo "使用smartshop目录的gradlew"
+        else
+          echo "错误：找不到gradlew文件"
+          exit 1
+        fi
       
     - name: 创建AVD并运行模拟器
       uses: reactivecircus/android-emulator-runner@v2
@@ -112,14 +175,21 @@ jobs:
         target: ${{ matrix.target }}
         arch: ${{ matrix.arch }}
         profile: Wear OS
-        script: ./gradlew connectedCheck
+        script: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew connectedCheck
+          else
+            cd smartshop && ../gradlew connectedCheck
+          fi
         
     - name: 上传UI测试报告
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: ui-test-report
-        path: smartshop/build/reports/androidTests/
+        path: |
+          */build/reports/androidTests/
+          smartshop/build/reports/androidTests/
         
   release:
     name: 创建发布版本
@@ -147,18 +217,42 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
+    
+    # 检查项目结构和gradlew位置
+    - name: 检查项目结构
+      run: |
+        ls -la
+        find . -name "gradlew" -type f
           
+    # 使用正确的gradlew路径
     - name: 授予执行权限
-      run: chmod +x gradlew
+      run: |
+        if [ -f "./gradlew" ]; then
+          chmod +x ./gradlew
+          echo "使用根目录的gradlew"
+        elif [ -f "./smartshop/gradlew" ]; then
+          chmod +x ./smartshop/gradlew
+          echo "使用smartshop目录的gradlew"
+        else
+          echo "错误：找不到gradlew文件"
+          exit 1
+        fi
       
     - name: 构建Release APK
-      run: ./gradlew assembleRelease
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleRelease
+        else
+          cd smartshop && ../gradlew assembleRelease
+        fi
       
     - name: 签名Release APK
       uses: r0adkll/sign-android-release@v1
       id: sign_app
       with:
-        releaseDirectory: smartshop/build/outputs/apk/release
+        releaseDirectory: |
+          */build/outputs/apk/release/
+          smartshop/build/outputs/apk/release/
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         alias: ${{ secrets.ALIAS }}
         keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
