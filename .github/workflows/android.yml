@@ -199,6 +199,55 @@ jobs:
         else
           echo "未在build目录中找到文件"
         fi
+        
+        # 创建构建产物目录
+        mkdir -p artifacts/apk
+        mkdir -p artifacts/lint
+        mkdir -p artifacts/tests
+        mkdir -p artifacts/other
+        
+        # 复制APK文件到构建产物目录
+        if [ -s apk_files.txt ]; then
+          while read -r file; do
+            cp "$file" artifacts/apk/
+          done < apk_files.txt
+        else
+          echo "No APK files found" > artifacts/apk/README.txt
+        fi
+        
+        # 复制lint报告到构建产物目录
+        if [ -s lint_files.txt ]; then
+          while read -r file; do
+            cp "$file" artifacts/lint/
+          done < lint_files.txt
+        else
+          echo "No lint reports found" > artifacts/lint/README.txt
+        fi
+        
+        # 复制测试报告到构建产物目录
+        if [ -s test_dirs.txt ]; then
+          while read -r dir; do
+            cp -r "$dir" artifacts/tests/
+          done < test_dirs.txt
+        else
+          echo "No test reports found" > artifacts/tests/README.txt
+        fi
+        
+        # 复制一些其他构建文件到构建产物目录
+        if [ -s build_files.txt ]; then
+          head -n 10 build_files.txt | while read -r file; do
+            cp "$file" artifacts/other/
+          done
+        else
+          echo "No other build files found" > artifacts/other/README.txt
+        fi
+        
+        # 列出构建产物目录内容
+        echo "===== 构建产物目录内容 ====="
+        ls -la artifacts/apk/
+        ls -la artifacts/lint/
+        ls -la artifacts/tests/
+        ls -la artifacts/other/
       
     # 上传找到的构建产物 - APK文件
     - name: 上传APK文件
@@ -206,8 +255,7 @@ jobs:
       if: always()
       with:
         name: apk-files
-        path: |
-          $(cat apk_files.txt 2>/dev/null || echo "README.md")
+        path: artifacts/apk/
         if-no-files-found: warn
         
     # 上传找到的构建产物 - Lint报告
@@ -216,8 +264,7 @@ jobs:
       if: always()
       with:
         name: lint-reports
-        path: |
-          $(cat lint_files.txt 2>/dev/null || echo "README.md")
+        path: artifacts/lint/
         if-no-files-found: warn
         
     # 上传找到的构建产物 - 测试报告
@@ -226,8 +273,7 @@ jobs:
       if: always()
       with:
         name: test-reports
-        path: |
-          $(cat test_dirs.txt 2>/dev/null || echo "README.md")
+        path: artifacts/tests/
         if-no-files-found: warn
         
     # 上传部分build目录文件，作为备用
@@ -236,6 +282,5 @@ jobs:
       if: always()
       with:
         name: other-build-files
-        path: |
-          $(head -n 20 build_files.txt 2>/dev/null || echo "README.md")
+        path: artifacts/other/
         if-no-files-found: warn
