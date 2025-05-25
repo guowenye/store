@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用基本信息 -->
+    <string name="app_name">Smart应用商店</string>
+    <string name="app_logo_content_description">Smart应用商店Logo</string>
+    <string name="app_developer">大白致远</string>
+    
+    <!-- 启动页 -->
+    <string name="splash_subtitle">发现更多精彩应用</string>
+    
+    <!-- 登录页 -->
+    <string name="login_title">欢迎登录</string>
+    <string name="login_email">邮箱</string>
+    <string name="login_password">密码</string>
+    <string name="login_button">登录</string>
+    <string name="login_forgot_password">忘记密码?</string>
+    <string name="login_no_account">没有账号?</string>
+    <string name="login_register">注册</string>
+    <string name="login_failed">登录失败</string>
+    
+    <!-- 注册页 -->
+    <string name="register_title">创建账号</string>
+    <string name="register_username">用户名</string>
+    <string name="register_email">邮箱</string>
+    <string name="register_password">密码</string>
+    <string name="register_confirm_password">确认密码</string>
+    <string name="register_button">注册</string>
+    <string name="register_terms">注册即表示同意</string>
+    <string name="register_terms_link">服务条款和隐私政策</string>
+    <string name="register_have_account">已有账号?</string>
+    <string name="register_login">登录</string>
+    <string name="register_failed">注册失败</string>
+    
+    <!-- 邮箱验证页 -->
+    <string name="verification_title">验证邮箱</string>
+    <string name="verification_subtitle">我们已发送验证码到您的邮箱</string>
+    <string name="verification_code">请输入6位验证码</string>
+    <string name="verification_button">验证</string>
+    <string name="verification_resend">重新发送验证码</string>
+    <string name="verification_countdown">%1$d秒后可重新发送</string>
+    <string name="verification_skip">稍后验证</string>
+    <string name="verification_success">验证成功!</string>
+    <string name="verification_remaining_attempts">剩余尝试次数: %1$d</string>
+    <string name="verification_failed">验证失败</string>
+    
+    <!-- 主页 -->
+    <string name="home_featured">特色应用</string>
+    <string name="home_categories">分类</string>
+    <string name="home_new_apps">新上架</string>
+    <string name="home_recommended">推荐应用</string>
+    <string name="home_see_all">查看全部</string>
+    <string name="search_hint">搜索应用...</string>
+    
+    <!-- 底部导航 -->
+    <string name="nav_home">首页</string>
+    <string name="nav_categories">分类</string>
+    <string name="nav_ranking">排行</string>
+    <string name="nav_profile">我的</string>
+    
+    <!-- 应用卡片 -->
+    <string name="app_size">%s MB</string>
+    <string name="app_version">v%s</string>
+    <string name="app_downloads">%s 下载</string>
+    <string name="app_rating">%s 分</string>
+    
+    <!-- 通用按钮 -->
+    <string name="button_download">下载</string>
+    <string name="button_installing">安装中</string>
+    <string name="button_installed">已安装</string>
+    <string name="button_update">更新</string>
+    <string name="button_open">打开</string>
+    <string name="button_cancel">取消</string>
+    <string name="button_confirm">确认</string>
+    <string name="button_retry">重试</string>
+    <string name="button_submit">提交</string>
+    <string name="button_save">保存</string>
+    <string name="button_delete">删除</string>
+    <string name="button_favorite">收藏</string>
+    <string name="button_unfavorite">取消收藏</string>
+    <string name="button_report">举报</string>
+    <string name="button_back">返回</string>
+    <string name="button_share">分享</string>
+    <string name="button_install">安装</string>
+    <string name="button_clear">清除</string>
+    
+    <!-- 错误提示 -->
+    <string name="error_network">网络连接错误</string>
+    <string name="error_server">服务器错误</string>
+    <string name="error_unknown">未知错误</string>
+    <string name="error_empty_field">此字段不能为空</string>
+    <string name="error_invalid_email">无效的邮箱格式</string>
+    <string name="error_password_short">密码至少需要6个字符</string>
+    <string name="error_passwords_not_match">两次输入的密码不一致</string>
+    <string name="error_unauthorized">未登录或登录已过期</string>
+    <string name="error_forbidden">没有权限执行此操作</string>
+    <string name="error_loading_app_details">无法加载应用详情</string>
+
+    <!-- 分类页 -->
+    <string name="categories_title">应用分类</string>
+    <string name="category_empty">该分类暂无应用</string>
+    <string name="category_filter">筛选</string>
+    <string name="category_sort">排序</string>
+    <string name="category_all">全部</string>
+
+    <!-- 排行页 -->
+    <string name="ranking_title">应用排行</string>
+    <string name="ranking_popular">热门</string>
+    <string name="ranking_new">新上架</string>
+    <string name="ranking_rating">好评</string>
+    <string name="ranking_today">今日</string>
+    <string name="ranking_week">本周</string>
+    <string name="ranking_month">本月</string>
+    <string name="ranking_empty">暂无排行数据</string>
+
+    <!-- 搜索页 -->
+    <string name="search_history">搜索历史</string>
+    <string name="search_clear_history">清除历史</string>
+    <string name="search_no_history">无搜索历史</string>
+    <string name="search_results_for">"%s"的搜索结果</string>
+    <string name="search_empty">未找到"%s"相关应用</string>
+    
+    <!-- 应用详情页 -->
+    <string name="app_description">应用介绍</string>
+    <string name="app_description_expand">展开</string>
+    <string name="app_description_collapse">收起</string>
+    <string name="app_screenshots">应用截图</string>
+    <string name="app_no_screenshots">暂无截图</string>
+    <string name="app_screenshot_number">截图 %d</string>
+    <string name="app_comments">用户评论</string>
+    <string name="app_similar">相似应用</string>
+    <string name="app_permission">应用权限</string>
+    <string name="app_update_date">更新日期: %s</string>
+    <string name="app_version_info">版本: %s (%d)</string>
+    
+    <!-- 评论页 -->
+    <string name="comment_empty">暂无评论</string>
+    <string name="comment_total_count">共 %d 条评论</string>
+    <string name="comment_sort">排序</string>
+    <string name="comment_sort_latest">最新</string>
+    <string name="comment_sort_rating">评分</string>
+    <string name="comment_add">写评论</string>
+    <string name="comment_write">写评论</string>
+    <string name="comment_rating">评分</string>
+    <string name="comment_rating_star">%d星</string>
+    <string name="comment_content">评论内容</string>
+    <string name="comment_submit_success">评论发表成功</string>
+    <string name="comment_submit_failed">评论发表失败</string>
+
+    <!-- 下载管理页 -->
+    <string name="download_empty">暂无下载记录</string>
+    <string name="download_downloading">下载中</string>
+    <string name="download_completed">已完成</string>
+    <string name="download_no_downloading">暂无下载中的应用</string>
+    <string name="download_no_completed">暂无已完成的下载</string>
+    <string name="download_paused">已暂停</string>
+    <string name="download_progress_info">%1$s / %2$s</string>
+    <string name="download_installed">已安装</string>
+    <string name="download_resume">继续</string>
+    <string name="download_pause">暂停</string>
+    <string name="download_cancel">取消</string>
+    <string name="download_delete">删除</string>
+    <string name="download_speed">%s/s</string>
+    <string name="download_remaining_time">剩余 %s</string>
+    <string name="download_delete_confirm_title">确认删除</string>
+    <string name="download_delete_confirm_message">是否删除"%s"的下载内容？</string>
+    <string name="download_manager">下载管理</string>
+    
+    <!-- 个人中心页 -->
+    <string name="profile_not_logged_in">未登录</string>
+    <string name="profile_verified">已验证</string>
+    <string name="profile_not_verified">未验证</string>
+    <string name="profile_favorites">我的收藏</string>
+    <string name="profile_favorites_count">已收藏 %d 个应用</string>
+    <string name="profile_settings">设置</string>
+    <string name="profile_settings_desc">主题、通知、缓存管理</string>
+    <string name="profile_about">关于</string>
+    <string name="profile_about_desc">版本信息、开发者、使用条款</string>
+    <string name="profile_logout">退出登录</string>
+    <string name="profile_logout_confirm_title">确认退出</string>
+    <string name="profile_logout_confirm_message">确定要退出登录吗？</string>
+    
+    <!-- 收藏列表页 -->
+    <string name="favorite_title">我的收藏</string>
+    <string name="favorite_empty">暂无收藏应用</string>
+    <string name="favorite_unfavorite_title">取消收藏</string>
+    <string name="favorite_unfavorite_message">确定要取消收藏"%s"吗？</string>
+    
+    <!-- 设置页 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_dark_mode">深色模式</string>
+    <string name="settings_dark_mode_desc">启用深色主题，降低亮度</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_notifications_desc">接收新应用和更新提醒</string>
+    <string name="settings_cache">缓存管理</string>
+    <string name="settings_cache_desc">当前缓存大小：%s</string>
+    <string name="settings_clear_cache_title">清除缓存</string>
+    <string name="settings_clear_cache_message">确定要清除所有缓存数据吗？</string>
+    <string name="settings_cache_cleared">缓存已清除</string>
+    
+    <!-- 关于页 -->
+    <string name="about_title">关于我们</string>
+    <string name="about_version_info">版本 %1$s (构建 %2$s)</string>
+    <string name="about_description">应用介绍</string>
+    <string name="about_description_content">Smart应用商店是一款面向Android智能手表的第三方应用商店，为智能手表用户提供丰富的应用下载、评价和管理服务。</string>
+    <string name="about_developer">开发者</string>
+    <string name="about_contact">联系我们</string>
+    <string name="about_contact_email">contact@smartshop.com</string>
+    <string name="about_terms">使用条款</string>
+    <string name="about_terms_content">欢迎使用Smart应用商店。使用本应用即表示您同意以下条款：\n\n1. 用户责任：您需对使用本应用的一切行为负责。\n\n2. 内容使用：本应用提供的内容仅供个人非商业用途使用。\n\n3. 知识产权：本应用及其内容的所有权利归开发者所有。\n\n4. 第三方应用：本应用商店中的应用由第三方开发者提供，我们不对这些应用的内容负责。\n\n5. 服务变更：我们保留随时修改或终止服务的权利。\n\n6. 免责声明：本应用按"现状"提供，不提供任何明示或暗示的保证。</string>
+    <string name="about_privacy">隐私政策</string>
+    <string name="about_privacy_content">Smart应用商店尊重并保护您的隐私。本隐私政策说明我们如何收集、使用和保护您的信息：\n\n1. 收集的信息：我们收集账号信息、设备信息和使用数据以提供服务。\n\n2. 信息使用：我们使用收集的信息提供、改进服务并发送通知。\n\n3. 信息共享：除法律要求外，我们不会向第三方出售或分享您的个人信息。\n\n4. 数据安全：我们采取合理措施保护您的信息不被未授权访问或泄露。\n\n5. 儿童隐私：本应用不面向13岁以下儿童。\n\n6. 政策更新：我们可能会更新本隐私政策，请定期查看。</string>
+    <string name="button_close">关闭</string>
+    
+    <!-- 举报页 -->
+    <string name="report_title">举报</string>
+    <string name="report_app_subtitle">举报应用：%s</string>
+    <string name="report_comment_subtitle">举报评论：%s</string>
+    <string name="report_reason_title">举报原因</string>
+    <string name="report_reason_inappropriate">不适当内容</string>
+    <string name="report_reason_spam">垃圾信息</string>
+    <string name="report_reason_violence">暴力内容</string>
+    <string name="report_reason_infringes_rights">侵犯权益</string>
+    <string name="report_reason_malware">恶意软件</string>
+    <string name="report_reason_other">其他原因</string>
+    <string name="report_description_title">详细描述</string>
+    <string name="report_description_hint">请描述具体问题（选择"其他原因"时必填）</string>
+    <string name="report_description_error">请填写详细描述</string>
+    <string name="report_success_title">举报成功</string>
+    <string name="report_success_message">感谢您的反馈，我们将尽快审核处理</string>
+    <string name="report_error_title">举报失败</string>
+</resources> 
