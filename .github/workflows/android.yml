@@ -44,7 +44,7 @@ jobs:
       run: ./gradlew lint
       
     - name: 上传代码检查报告
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: lint-report
@@ -54,7 +54,7 @@ jobs:
       run: ./gradlew test
       
     - name: 上传测试报告
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-report
@@ -64,7 +64,7 @@ jobs:
       run: ./gradlew assembleDebug
       
     - name: 上传Debug APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: app-debug
         path: smartshop/build/outputs/apk/debug/smartshop-debug.apk
@@ -115,7 +115,7 @@ jobs:
         script: ./gradlew connectedCheck
         
     - name: 上传UI测试报告
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: ui-test-report
