@@ -157,20 +157,85 @@ jobs:
           ${{ env.GRADLEW_PATH }} assembleDebug || echo "assembleDebug任务失败或不存在"
         fi
         
-        # 列出所有生成的构建产物
-        echo "===== 查找生成的构建产物 ====="
-        find . -name "*.apk"
-        find . -name "*lint-results*.html"
-        find . -name "tests" -type d
+        # 查找并保存所有构建产物的确切路径
+        echo "===== 查找所有构建产物 ====="
+        
+        # 查找APK文件
+        echo "查找APK文件..."
+        find . -name "*.apk" > apk_files.txt
+        if [ -s apk_files.txt ]; then
+          echo "找到以下APK文件:"
+          cat apk_files.txt
+        else
+          echo "未找到APK文件"
+        fi
+        
+        # 查找lint报告
+        echo "查找lint报告..."
+        find . -name "*lint-results*.html" > lint_files.txt
+        if [ -s lint_files.txt ]; then
+          echo "找到以下lint报告文件:"
+          cat lint_files.txt
+        else
+          echo "未找到lint报告文件"
+        fi
+        
+        # 查找测试报告目录
+        echo "查找测试报告目录..."
+        find . -name "tests" -type d > test_dirs.txt
+        if [ -s test_dirs.txt ]; then
+          echo "找到以下测试报告目录:"
+          cat test_dirs.txt
+        else
+          echo "未找到测试报告目录"
+        fi
+        
+        # 更广泛地查找构建产物
+        echo "更广泛地查找所有build目录下的文件..."
+        find . -path "*/build/*" -type f -not -path "*/\.*" | head -n 50 > build_files.txt
+        if [ -s build_files.txt ]; then
+          echo "找到构建目录中的文件(前50个):"
+          cat build_files.txt
+        else
+          echo "未在build目录中找到文件"
+        fi
       
-    # 上传找到的构建产物
-    - name: 上传构建产物
+    # 上传找到的构建产物 - APK文件
+    - name: 上传APK文件
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: build-artifacts
+        name: apk-files
         path: |
-          **/build/outputs/apk/debug/*.apk
-          **/build/reports/lint-results*.html
-          **/build/reports/tests/
+          $(cat apk_files.txt 2>/dev/null || echo "README.md")
+        if-no-files-found: warn
+        
+    # 上传找到的构建产物 - Lint报告
+    - name: 上传Lint报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lint-reports
+        path: |
+          $(cat lint_files.txt 2>/dev/null || echo "README.md")
+        if-no-files-found: warn
+        
+    # 上传找到的构建产物 - 测试报告
+    - name: 上传测试报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports
+        path: |
+          $(cat test_dirs.txt 2>/dev/null || echo "README.md")
+        if-no-files-found: warn
+        
+    # 上传部分build目录文件，作为备用
+    - name: 上传其他构建文件
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: other-build-files
+        path: |
+          $(head -n 20 build_files.txt 2>/dev/null || echo "README.md")
         if-no-files-found: warn
