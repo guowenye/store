@@ -37,33 +37,30 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
     
-    # 检查项目结构
-    - name: 检查项目结构
+    # 详细分析项目结构
+    - name: 详细分析项目结构
       run: |
         echo "===== 项目根目录内容 ====="
         ls -la
-        echo "===== 查找所有 gradlew 文件 ====="
-        find . -name "gradlew" -type f
-        echo "===== 查找所有 build.gradle 文件 ====="
-        find . -name "build.gradle" -type f
-        echo "===== 查找所有 settings.gradle 文件 ====="
-        find . -name "settings.gradle" -type f
         
-        # 查看settings.gradle的内容，了解模块结构
-        echo "===== settings.gradle 内容 ====="
-        if [ -f "settings.gradle" ]; then
-          cat settings.gradle
-        fi
+        echo "===== 项目所有build.gradle文件内容 ====="
+        find . -name "build.gradle" -type f -exec echo "查看文件: {}" \; -exec cat {} \; -exec echo "----------" \;
         
-        # 查看build.gradle的内容，了解项目配置
-        echo "===== 根项目 build.gradle 内容 ====="
-        if [ -f "build.gradle" ]; then
-          cat build.gradle
-        fi
+        echo "===== 项目settings.gradle文件内容 ====="
+        find . -name "settings.gradle" -type f -exec echo "查看文件: {}" \; -exec cat {} \; -exec echo "----------" \;
         
-        # 列出所有目录，找出可能的模块目录
-        echo "===== 查找可能的模块目录 ====="
-        find . -maxdepth 1 -type d | grep -v "^\.$" | grep -v "^\./\." | sort
+        echo "===== 查找所有gradle相关文件 ====="
+        find . -name "*.gradle" -o -name "*.gradle.kts" | sort
+        
+        echo "===== 查找AndroidManifest.xml文件 ====="
+        find . -name "AndroidManifest.xml" -type f -exec echo "查看文件: {}" \; -exec cat {} \; -exec echo "----------" \;
+        
+        echo "===== 检查每个子目录的内容 ====="
+        for dir in $(find . -maxdepth 1 -type d -not -path "." -not -path "*/\.*"); do
+          echo "目录: $dir"
+          ls -la "$dir"
+          echo "----------"
+        done
           
     # 检查项目是否需要初始化Gradle Wrapper
     - name: 初始化Gradle Wrapper（如果需要）
@@ -86,136 +83,142 @@ jobs:
         fi
         echo "GRADLEW_PATH=$GRADLEW_PATH" >> $GITHUB_ENV
       
-    # 列出可用的Gradle任务和项目
-    - name: 列出可用的Gradle任务和项目
+    # 列出所有Gradle任务
+    - name: 列出所有Gradle任务
       run: |
-        echo "===== 列出所有项目 ====="
-        ${{ env.GRADLEW_PATH }} projects
+        echo "===== 列出所有可用Gradle任务 ====="
+        ${{ env.GRADLEW_PATH }} tasks --all
         
-        echo "===== 列出根项目可用任务 ====="
-        ${{ env.GRADLEW_PATH }} tasks
-        
-        # 查找子项目并列出它们的任务
-        echo "===== 查找并列出子项目任务 ====="
-        # 从projects输出中提取子项目
-        ${{ env.GRADLEW_PATH }} projects | grep -o "Project ':[^']*'" | sed "s/Project '://g" | sed "s/'//g" > subprojects.txt
-        
-        if [ -s subprojects.txt ]; then
-          echo "找到以下子项目:"
-          cat subprojects.txt
-          
-          # 对每个子项目列出任务
-          while read -r project; do
-            echo "===== 列出 $project 项目任务 ====="
-            ${{ env.GRADLEW_PATH }} :$project:tasks || echo "无法列出 $project 的任务"
-          done < subprojects.txt
-        else
-          echo "未找到子项目"
-        fi
-    
-    # 尝试找出Android应用模块
-    - name: 查找Android应用模块
+        echo "===== 查找所有构建相关任务 ====="
+        ${{ env.GRADLEW_PATH }} tasks --all | grep -E "assemble|build|compile|install"
+      
+    # 尝试所有可能的APK构建命令
+    - name: 尝试所有可能的APK构建命令
       run: |
-        echo "===== 查找包含AndroidManifest.xml的目录 ====="
-        find . -name "AndroidManifest.xml" -type f
+        echo "===== 尝试多种方式构建APK ====="
         
-        echo "===== 查找包含android plugin的build.gradle文件 ====="
-        find . -name "build.gradle" -type f -exec grep -l "com.android.application" {} \;
+        # 检查子项目并识别所有可能的应用模块
+        echo "===== 分析子项目 ====="
+        ${{ env.GRADLEW_PATH }} projects || echo "列出项目失败"
         
-        # 保存找到的Android应用模块路径
-        find . -name "build.gradle" -type f -exec grep -l "com.android.application" {} \; | xargs -I{} dirname {} | sed 's|^\./||' > android_modules.txt
+        # 识别Android应用模块
+        echo "===== 识别Android应用模块 ====="
+        find . -name "build.gradle" -type f -exec grep -l "com.android.application" {} \; | xargs -I{} dirname {} | sed 's|^\./||' > app_modules.txt
         
-        if [ -s android_modules.txt ]; then
+        if [ -s app_modules.txt ]; then
           echo "找到以下Android应用模块:"
-          cat android_modules.txt
-          echo "ANDROID_MODULE=$(head -n 1 android_modules.txt)" >> $GITHUB_ENV
+          cat app_modules.txt
         else
-          echo "警告: 未找到Android应用模块，将尝试在根目录运行任务"
-          echo "ANDROID_MODULE=." >> $GITHUB_ENV
+          echo "未找到明确的Android应用模块，将尝试其他方法"
+        fi
+        
+        # 方法1: 构建所有项目
+        echo "===== 方法1: 构建所有项目 ====="
+        ${{ env.GRADLEW_PATH }} build --stacktrace || echo "全局构建失败"
+        
+        # 方法2: 构建debug APK
+        echo "===== 方法2: 构建debug APK ====="
+        ${{ env.GRADLEW_PATH }} assembleDebug --stacktrace || echo "assembleDebug失败"
+        
+        # 方法3: 针对每个可能的应用模块构建
+        echo "===== 方法3: 针对可能的应用模块构建 ====="
+        if [ -s app_modules.txt ]; then
+          while read -r module; do
+            echo "尝试构建模块: $module"
+            ${{ env.GRADLEW_PATH }} :$module:assembleDebug --stacktrace || echo "$module:assembleDebug失败"
+            ${{ env.GRADLEW_PATH }} :$module:build --stacktrace || echo "$module:build失败"
+          done < app_modules.txt
+        fi
+        
+        # 方法4: 尝试其他常见模块名
+        echo "===== 方法4: 尝试其他常见模块名 ====="
+        for module in app mobile main wear watch smartphone wearable ui client; do
+          if [ -d "$module" ]; then
+            echo "尝试构建模块: $module"
+            ${{ env.GRADLEW_PATH }} :$module:assembleDebug --stacktrace || echo "$module:assembleDebug失败"
+          fi
+        done
+        
+        # 方法5: 尝试直接执行常见构建任务
+        echo "===== 方法5: 执行常见构建任务 ====="
+        ${{ env.GRADLEW_PATH }} installDebug || echo "installDebug失败"
+        ${{ env.GRADLEW_PATH }} assemble || echo "assemble失败"
+        ${{ env.GRADLEW_PATH }} assembleRelease || echo "assembleRelease失败"
+        
+        # 列出所有生成的APK文件
+        echo "===== 查找所有APK文件 ====="
+        find . -name "*.apk" | tee all_apk_files.txt
+        
+        if [ -s all_apk_files.txt ]; then
+          echo "找到以下APK文件:"
+          cat all_apk_files.txt
+          
+          # 详细显示APK文件信息
+          echo "===== APK文件详细信息 ====="
+          while read -r apk; do
+            echo "APK文件: $apk"
+            echo "文件大小: $(du -h "$apk" | cut -f1)"
+            echo "修改时间: $(stat -c %y "$apk")"
+          done < all_apk_files.txt
+        else
+          echo "未找到任何APK文件"
         fi
       
-    # 根据找到的Android模块执行构建任务
-    - name: 执行Android构建任务
+    # 广泛查找所有构建产物
+    - name: 广泛查找所有构建产物
       run: |
-        echo "使用模块: ${{ env.ANDROID_MODULE }}"
+        echo "===== 查找所有build目录 ====="
+        find . -type d -name "build" > build_dirs.txt
         
-        if [ "${{ env.ANDROID_MODULE }}" != "." ]; then
-          # 对找到的模块执行常见Android任务
-          echo "===== 执行模块 lint 任务 ====="
-          ${{ env.GRADLEW_PATH }} :${{ env.ANDROID_MODULE }}:lint || echo "lint任务失败或不存在"
+        if [ -s build_dirs.txt ]; then
+          echo "找到以下build目录:"
+          cat build_dirs.txt
           
-          echo "===== 执行模块测试任务 ====="
-          ${{ env.GRADLEW_PATH }} :${{ env.ANDROID_MODULE }}:test || echo "test任务失败或不存在"
+          # 检查每个build目录的结构
+          while read -r dir; do
+            echo "目录结构: $dir"
+            find "$dir" -type d | sort
+            echo "----------"
+          done < build_dirs.txt
+        fi
+        
+        echo "===== 查找所有outputs目录 ====="
+        find . -type d -name "outputs" > outputs_dirs.txt
+        
+        if [ -s outputs_dirs.txt ]; then
+          echo "找到以下outputs目录:"
+          cat outputs_dirs.txt
           
-          echo "===== 构建Debug APK ====="
-          ${{ env.GRADLEW_PATH }} :${{ env.ANDROID_MODULE }}:assembleDebug || echo "assembleDebug任务失败或不存在"
-        else
-          # 尝试在根项目执行任务
-          echo "===== 尝试在根项目执行Android任务 ====="
-          ${{ env.GRADLEW_PATH }} lint || echo "lint任务失败或不存在"
-          ${{ env.GRADLEW_PATH }} test || echo "test任务失败或不存在"
-          ${{ env.GRADLEW_PATH }} assembleDebug || echo "assembleDebug任务失败或不存在"
-        fi
-        
-        # 查找并保存所有构建产物的确切路径
-        echo "===== 查找所有构建产物 ====="
-        
-        # 查找APK文件
-        echo "查找APK文件..."
-        find . -name "*.apk" > apk_files.txt
-        if [ -s apk_files.txt ]; then
-          echo "找到以下APK文件:"
-          cat apk_files.txt
-        else
-          echo "未找到APK文件"
-        fi
-        
-        # 查找lint报告
-        echo "查找lint报告..."
-        find . -name "*lint-results*.html" > lint_files.txt
-        if [ -s lint_files.txt ]; then
-          echo "找到以下lint报告文件:"
-          cat lint_files.txt
-        else
-          echo "未找到lint报告文件"
-        fi
-        
-        # 查找测试报告目录
-        echo "查找测试报告目录..."
-        find . -name "tests" -type d > test_dirs.txt
-        if [ -s test_dirs.txt ]; then
-          echo "找到以下测试报告目录:"
-          cat test_dirs.txt
-        else
-          echo "未找到测试报告目录"
-        fi
-        
-        # 更广泛地查找构建产物
-        echo "更广泛地查找所有build目录下的文件..."
-        find . -path "*/build/*" -type f -not -path "*/\.*" | head -n 50 > build_files.txt
-        if [ -s build_files.txt ]; then
-          echo "找到构建目录中的文件(前50个):"
-          cat build_files.txt
-        else
-          echo "未在build目录中找到文件"
+          # 检查每个outputs目录的内容
+          while read -r dir; do
+            echo "目录内容: $dir"
+            find "$dir" -type f | sort
+            echo "----------"
+          done < outputs_dirs.txt
         fi
         
         # 创建构建产物目录
         mkdir -p artifacts/apk
         mkdir -p artifacts/lint
         mkdir -p artifacts/tests
-        mkdir -p artifacts/other
+        mkdir -p artifacts/build
         
         # 复制APK文件到构建产物目录
-        if [ -s apk_files.txt ]; then
+        if [ -s all_apk_files.txt ]; then
           while read -r file; do
             cp "$file" artifacts/apk/
-          done < apk_files.txt
+          done < all_apk_files.txt
         else
           echo "No APK files found" > artifacts/apk/README.txt
+          
+          # 如果没有找到APK，尝试复制其他构建产物
+          echo "复制其他可能的构建产物..."
+          find . -path "*/build/outputs/*" -type f -not -path "*/tmp/*" -exec cp {} artifacts/build/ \; || echo "未找到构建产物"
+          find . -path "*/outputs/*" -type f -not -path "*/tmp/*" -exec cp {} artifacts/build/ \; || echo "未找到输出产物"
         fi
         
-        # 复制lint报告到构建产物目录
+        # 查找并复制lint报告
+        find . -name "*lint-results*.html" -o -name "*lint-results*.xml" > lint_files.txt
         if [ -s lint_files.txt ]; then
           while read -r file; do
             cp "$file" artifacts/lint/
@@ -224,22 +227,14 @@ jobs:
           echo "No lint reports found" > artifacts/lint/README.txt
         fi
         
-        # 复制测试报告到构建产物目录
+        # 查找并复制测试报告
+        find . -path "*/build/reports/tests/*" -type d > test_dirs.txt
         if [ -s test_dirs.txt ]; then
           while read -r dir; do
-            cp -r "$dir" artifacts/tests/
+            cp -r "$dir"/* artifacts/tests/ || echo "复制测试报告失败: $dir"
           done < test_dirs.txt
         else
           echo "No test reports found" > artifacts/tests/README.txt
-        fi
-        
-        # 复制一些其他构建文件到构建产物目录
-        if [ -s build_files.txt ]; then
-          head -n 10 build_files.txt | while read -r file; do
-            cp "$file" artifacts/other/
-          done
-        else
-          echo "No other build files found" > artifacts/other/README.txt
         fi
         
         # 列出构建产物目录内容
@@ -247,7 +242,7 @@ jobs:
         ls -la artifacts/apk/
         ls -la artifacts/lint/
         ls -la artifacts/tests/
-        ls -la artifacts/other/
+        ls -la artifacts/build/
       
     # 上传找到的构建产物 - APK文件
     - name: 上传APK文件
@@ -276,11 +271,11 @@ jobs:
         path: artifacts/tests/
         if-no-files-found: warn
         
-    # 上传部分build目录文件，作为备用
-    - name: 上传其他构建文件
+    # 上传其他构建产物
+    - name: 上传其他构建产物
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: other-build-files
-        path: artifacts/other/
+        path: artifacts/build/
         if-no-files-found: warn
