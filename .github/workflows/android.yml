@@ -1,0 +1,176 @@
+name: 安卓CI流程
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    name: 构建与测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+      
+    - name: 设置JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: 设置Android SDK
+      uses: android-actions/setup-android@v2
+      
+    - name: 缓存Gradle包
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 授予执行权限
+      run: chmod +x gradlew
+      
+    - name: 代码检查
+      run: ./gradlew lint
+      
+    - name: 上传代码检查报告
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: lint-report
+        path: smartshop/build/reports/lint-results-debug.html
+        
+    - name: 运行单元测试
+      run: ./gradlew test
+      
+    - name: 上传测试报告
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-report
+        path: smartshop/build/reports/tests/
+        
+    - name: 构建Debug APK
+      run: ./gradlew assembleDebug
+      
+    - name: 上传Debug APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-debug
+        path: smartshop/build/outputs/apk/debug/smartshop-debug.apk
+        
+  ui-test:
+    name: 安卓UI测试
+    needs: build
+    runs-on: macos-latest  # 使用macOS以获得更好的模拟器性能
+    timeout-minutes: 45
+    
+    strategy:
+      matrix:
+        api-level: [30]  # Wear OS 最常用API级别
+        target: [google_apis]
+        arch: [x86_64]
+        
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+      
+    - name: 设置JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+        
+    - name: 缓存Gradle包
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 授予执行权限
+      run: chmod +x gradlew
+      
+    - name: 创建AVD并运行模拟器
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ matrix.api-level }}
+        target: ${{ matrix.target }}
+        arch: ${{ matrix.arch }}
+        profile: Wear OS
+        script: ./gradlew connectedCheck
+        
+    - name: 上传UI测试报告
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ui-test-report
+        path: smartshop/build/reports/androidTests/
+        
+  release:
+    name: 创建发布版本
+    needs: [build, ui-test]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+      
+    - name: 设置JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+        
+    - name: 缓存Gradle包
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 授予执行权限
+      run: chmod +x gradlew
+      
+    - name: 构建Release APK
+      run: ./gradlew assembleRelease
+      
+    - name: 签名Release APK
+      uses: r0adkll/sign-android-release@v1
+      id: sign_app
+      with:
+        releaseDirectory: smartshop/build/outputs/apk/release
+        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+        alias: ${{ secrets.ALIAS }}
+        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
+        
+    - name: 创建GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{steps.sign_app.outputs.signedReleaseFile}}
+        name: 发布 ${{ github.ref_name }}
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
